@@ -23,6 +23,12 @@
 	)
 )
 
+(define (smap proc s)
+	(scons (proc (scar s))
+		(smap proc (scdr s))
+	)
+)
+
 
 (define (integers-from n) 
 	(scons n 
@@ -168,16 +174,16 @@
         (cond ((stream-null? s1) s2)
                   ((stream-null? s2) s1)
                   (else
-                        (let ((cars1 (stream-car s1))
-                                  (cars2 (stream-car s2)))
+                        (let ((cars1 (scar s1))
+                                  (cars2 (scar s2)))
                           (cond ((< (weight cars1) (weight cars2))
-                                 (cons-stream cars1 
-                                                       (merge-weighted (stream-cdr s1) s2 weight)))
+                                 (scons cars1 
+                                                       (mergeWeight (stream-cdr s1) s2 weight)))
                             ((= (weight cars1) (weight cars2)) 
-                                     (cons-stream cars1 
-                                                            (merge-weighted (stream-cdr s1) s2 weight)))
-                                (else (cons-stream cars2
-                                                        (merge-weighted s1 (stream-cdr s2) weight))
+                                     (scons cars1 
+                                                            (mergeWeight (stream-cdr s1) s2 weight)))
+                                (else (scons cars2
+                                                        (mergeWeight s1 (stream-cdr s2) weight))
 				)
 			  ) 
 			)
@@ -185,12 +191,12 @@
 	)
 )
 
-(define (weighted-pairs s1 s2 w)
+(define (weight-pairs s1 s2 w)
 	(scons (list (scar s1) (scar s2))
-		(mergeWeight (stream-map (lambda (x) (list (scar s1) x))
+		(mergeWeight (smap (lambda (x) (list (scar s1) x))
 				(scdr s2))
-		(weight-pairs (scdr s1) (scdr s2) weight)
-		weight)
+		(weight-pairs (scdr s1) (scdr s2) w)
+		w)
 	)
 )
 
@@ -200,17 +206,18 @@
 	(define (ramMerge strm)
 		(if(= (trip-sum (scar strm)) (trip-sum (scadr strm)))
 			(scons (list (trip-sum (scar strm)) (scar strm) (scadr strm))
-				(ramMerge (scddr strm))
-			)
+				(ramMerge (scddr strm)))
+			(ramMerge (scdr strm))
 		)
 	)
-	(ramMerge (weighted-pairs ints ints trip-sum))
+	(ramMerge (weight-pairs ints ints trip-sum))
 )
 
 
 ;---------test 9------------;
 (define (run9)
 (define ramNum (ramanujan))
+(inspect ramNum)
 (stream-display ramNum 5)
 )
 
