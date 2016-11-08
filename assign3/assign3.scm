@@ -5,6 +5,8 @@
 (define scons cons-stream)
 (define scar stream-car)
 (define scdr stream-cdr)
+(define (scadr s) (scar(scdr s)))
+(define (scddr s) (scdr(scdr s)))
 (define (max a b)
 	(if(< a b) b a )
 )
@@ -46,11 +48,14 @@
 )
 
 (define (zero? n)(= n 0))
-(define (divisible? n x)
+(define (div7? n)
 	(inspect n)
-	(inspect x)
-	(cond	((= x 0) nil)
-		(else (zero? (remainder n x)))
+	(cond	((= n 0) #f)
+		(else 	(or 
+			(not(zero? (remainder n 7)))
+			(not(zero? (remainder n 11)))
+			)
+		)
 	)
 )
 
@@ -252,22 +257,70 @@ this
 
 )
 ;---------task 6------------;
-(define (big-gulp)
-	(define (bg-iter s)
-		(scons 7 
-			(bg-iter 
-				(sfilter
-					(lambda (x)
-						(not
-							(divisible? x (scar s))
-						)
-					)
-					(scdr s)
-				)
+
+(define (mergeWeight s1 s2 weight)
+        (cond ((stream-null? s1) s2)
+                  ((stream-null? s2) s1)
+                  (else
+                        (let ((cars1 (scar s1))
+                                  (cars2 (scar s2)))
+                          (cond ((< (weight cars1) (weight cars2))
+                                 (scons cars1
+                                                       (mergeWeight (stream-cdr s1) s2 weight)))
+                            ((= (weight cars1) (weight cars2))
+                                     (scons cars1
+                                                            (mergeWeight (stream-cdr s1) s2 weight)))
+                                (else (scons cars2
+                                                        (mergeWeight s1 (stream-cdr s2) weight))
+                                )
+                          )
+                        )
+                )
+        )
+)
+
+(define (weight-pairs s1 s2 w)
+        (scons (list (scar s1) (scar s2))
+                (mergeWeight (smap (lambda (x) (list (scar s1) x))
+                                (scdr s2))
+                (weight-pairs (scdr s1) (scdr s2) w)
+                w)
+        )
+)
+
+(define (s-from n) 
+	(scons n 
+		(s-from (* 7 n))
+	)
+)
+(define (e-from n) 
+	(scons n 
+		(e-from (* 11  n))
+	)
+)
+
+(define seven (s-from 7))
+(define eleven (e-from 11))
+
+(define (sev11 s e)
+	(let ((cars1 (scar s))
+		(cars2 (scar e)))
+		(cond 	((< cars1 cars2)
+				(scons cars1
+					(sev11 (stream-cdr s) e)))
+			((= cars1 cars2)
+				(scons cars1
+					(sev11 (stream-cdr s) e)))
+			(else 	(scons cars2
+					(sev11 s (stream-cdr e)))
 			)
 		)
 	)
-	(bg-iter (integers-from 11))
+)
+
+
+(define (big-gulp)
+	(sev11 seven eleven)
 )
 
 (define (stream-display strm n)
@@ -294,10 +347,12 @@ this
 ;stream-display test;
 (define s (integers-from 0))
 (stream-display s 10)
-;(define bgs (big-gulp))
-;(stream-display bgs 4)
-;(stream-display bgs 8)
-;(stream-display bgs 20)
+(stream-display seven 4)
+(stream-display eleven 4)
+(define bgs (big-gulp))
+(stream-display bgs 4)
+(stream-display bgs 8)
+(stream-display bgs 20)
 )
 (run6)
 ;---------task 7------------;
@@ -370,8 +425,6 @@ this
 )
 
 (define (ramanujan)
-	(define (scadr s) (scar(scdr s)))
-	(define (scddr s) (scdr(scdr s)))
 	(define (ramMerge strm)
 		(if(= (trip-sum (scar strm)) (trip-sum (scadr strm)))
 			(scons (list (trip-sum (scar strm)) (scar strm) (scadr strm))
@@ -390,6 +443,7 @@ this
 (stream-display ramNum 5)
 )
 
-(run9)
+;(run9)
 
+;--final run test for completion--;
 (author)
