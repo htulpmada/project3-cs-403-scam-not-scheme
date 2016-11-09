@@ -133,7 +133,6 @@
 )
 (define (balance-avl tree)
 	(define (factor tree) (- (height (right tree)) (height (left tree))))
-;	(inspect (factor tree))
 	(let ((tree-factor (factor tree))) 
 		(cond 	((= tree-factor 2) 
 			  (cond (
@@ -153,19 +152,11 @@
 (define (statistics)
 	(define que (Queue))
 	(define que (enqueue que tree))
-;	(define que (enqueue que (right tree)))
-;	(inspect que)
 	(define (iterStats q)
-;	(inspect t)
 	(define t (qpeek q))
 	(define (factor tr) (- (height (left tr)) (height (right tr))))
 		(if(or(empty? q)(null? t)) (println "")
 			(begin
-;	(inspect (left t))
-;	(inspect (right t))
-;				(define q (enqueue q (left t)))
-;				(define q (enqueue q (right t)))
-;	(inspect q);need to print head of queue
 				(print (node t))
 				(print ":")
 				(print (factor t))
@@ -180,9 +171,6 @@
 )
 
 (define (insert x)
-;	(print "inserted ")
-;	(print x)
-;	(print "\n")
 	(define (insertInner x tree)
 		(cond	((null? tree) (make-node x))
 			((< x (node tree))
@@ -256,57 +244,20 @@ this
         )
 )
 
-(define (treeflatten tree)
-        (define (flat t dep)
-                (cond   ((null? t) '())
-                        ((and (null? (getR t)) (null? (getL t))) (list(list dep (getV t))))
-                        (else   (append (flat (getL t)(+ dep 1))
-                                        (flat (getR t)(+ dep 1))
-                                )
-                        )
-                )
-        )
-        (flat tree 0)
-)
-
-(define (treedepth tree)
-        (define new-tree (treeflatten tree))
-        (define l (real(length new-tree)))
-        ( / (accu + 0 new-tree) l)
-)
-
-
-
 ;---------test 3------------;
 (define (run3)
 (define t (avl))
-;(ppTable t)
 ((t 'insert)3)
-;(ppTable t)
-;(define test ((t 'getTree)))
-;(inspect test)
 ((t 'insert)4)
-;(ppTable t)
-;(define test ((t 'getTree)))
-;(inspect test)
 ((t 'insert)5)
-;(ppTable t)
-;(define test ((t 'getTree)))
-;(inspect test)
 ((t 'insert)1)
-;(ppTable t)
-(define test ((t 'getTree)))
-(inspect test)
 ((t 'insert)0)
 ((t 'statistics))
-;(ppTable t)
-(define f ((t 'find) 5))
-(inspect f)
-(define s ((t 'size)))
-(inspect s)
+(inspect ((t 'find) 5))
+(define size ((t 'size)))
+(inspect size)
 (define test ((t 'getTree)))
 (inspect test)
-;(inspect (treeflatten test))
 )
 (run3)
 ;---------task 4------------;
@@ -341,6 +292,14 @@ this
 
 (define seven (s-from 7))
 (define eleven (e-from 11))
+
+(define (mix i j)
+	(scons (* (scar i) (scar j))
+		(mix (scdr i) (scdr j))
+	)
+)
+(define mixStrm (mix seven eleven))
+
 ;--mergre streams--;
 (define (sev11 s e)
 	(let ((cars1 (scar s))
@@ -360,7 +319,7 @@ this
 
 
 (define (big-gulp)
-	(sev11 seven eleven)
+	(sev11 (sev11 seven eleven) mixStrm)
 )
 ;--print stream--;
 (define (stream-display strm n)
@@ -389,12 +348,13 @@ this
 (stream-display s 10)
 (stream-display seven 4)
 (stream-display eleven 4)
+(stream-display mixStrm 8)
 (define bgs (big-gulp))
 (stream-display bgs 4)
 (stream-display bgs 8)
 (stream-display bgs 20)
 )
-;(run6)
+(run6)
 ;---------task 7------------;
 
 (define (signal f x dx)
