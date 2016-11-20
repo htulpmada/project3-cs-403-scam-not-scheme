@@ -27,12 +27,46 @@
 	)
 )
 
+(define (psum s)
+	(sop + s (scons 0.0 (psum s)))
+)
+
+(define (sref s n)
+	(if (= n 0)
+		(scar s)
+		(sref (scdr s) (- n 1)))
+)
+
+(define (sget s n)
+	(if (= n 0)
+		s
+		(sget (scdr s) (- n 1)))
+)
+
+
 (define (smap proc s)
 	(scons (proc (scar s))
 		(smap proc (scdr s))
 	)
 )
 
+(define (sop op s1 s2)
+;	(print (scar s1))
+;	(print " / ")
+;	(print (scar s2))
+;	(println "")
+	(scons (op (scar s1) (scar s2))
+		(sop op (scdr s1) (scdr s2)))
+)
+
+(define (shuffle s1 s2)
+	(scons (scar s1)
+		(shuffle s2 s1))
+)
+
+(define (skip s)
+	(scons (scar s) (skip (scdr (scdr s))))
+)
 
 (define (integers-from n) 
 	(scons n 
@@ -259,7 +293,7 @@ this
 (define test ((t 'getTree)))
 (inspect test)
 )
-(run3)
+;(run3)
 ;---------task 4------------;
 
 
@@ -354,7 +388,7 @@ this
 (stream-display bgs 8)
 (stream-display bgs 20)
 )
-(run6)
+;(run6)
 ;---------task 7------------;
 
 (define (signal f x dx)
@@ -385,12 +419,100 @@ this
 )
 ;---------task 8------------;
 
+(define (one n) 
+	(scons n (one n))
+)
+
+(define ones (one 1.0 ))
+
+(define (negOne s)
+	(scons  (- 0.0 (scar s)) (negOne (scdr s)))
+)
+
+(define negOnes (negOne ones))
+
+(define (altOne s1 s2)
+	(shuffle s1 s2)
+)
+
+(define altOnes (altOne ones negOnes))
+
+(define evens
+	(skip (integers-from 0.0))
+)
+
+(define facto
+	(scons 1.0 (sop * (integers-from 1.0)  facto))
+)
+
+(define (Ns n)
+	(scons (real n) (Ns n))
+)
+
+(define (even-pow x) 
+	(sop ^ (Ns x) evens)
+)
+
+(define even-fact
+	(skip facto)
+)
+
+(define alt-even-fact
+	(sop * altOnes even-fact)
+)
+
+(define (mystery x)
+	(sop * (even-pow x) (sop / ones alt-even-fact))
+)
+
+(define (ps-mystery x)
+	(psum(mystery x))
+)
+
+(define (square x)
+	(* x x)
+)
+
+(define (et s)
+	(define s0 (sref s 0))
+	(define s1 (sref s 1))
+	(define s2 (sref s 2))
+
+	(scons 
+		(- s2 (/ (square (- s2 s1))
+			(+ s0 (* -2 s1) s2)))
+		
+		(et (scdr s))
+	)
+)
+
+(define (tableau t s)
+	(scons 	s 
+		(tableau t (t s)))
+)
+
+(define (acc-mystery x)
+	(et (ps-mystery x))
+)
+
+(define (super-mystery x)
+	(smap scar (tableau et (ps-mystery x)))
+)	
+
+
 
 
 ;---------test 8------------;
 (define (run8)
 
+(println (sref (ps-mystery 2) 10))
+
+(println (sref (acc-mystery 2) 5))
+
+(println (stream-display (super-mystery 2) 5))
+
 )
+(run8)
 ;---------task 9------------;
 (define (trip e) (* e e e))
 (define (trip-sum e) (+ (trip (car e)) (trip (cadr e))))
