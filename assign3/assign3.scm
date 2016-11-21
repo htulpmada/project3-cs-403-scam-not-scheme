@@ -99,17 +99,17 @@
 
 
 ;---------test 1------------;
-(define (run1)
-
-)
+;(define (run1)
+;
+;)
 ;---------task 2------------;
 
 
 
 ;---------test 2------------;
-(define (run2)
-
-)
+;(define (run2)
+;
+;)
 ;---------task 3------------;
 (define (avl)
 (define s 0)
@@ -299,17 +299,17 @@ this
 
 
 ;---------test 4------------;
-(define (run4)
-
-)
+;(define (run4)
+;
+;)
 ;---------task 5------------;
 
 
 
 ;---------test 5------------;
-(define (run5)
-
-)
+;(define (run5)
+;
+;)
 ;---------task 6------------;
 
 ;---streams--;
@@ -379,10 +379,10 @@ this
 (define (run6)
 ;stream-display test;
 (define s (integers-from 0))
-(stream-display s 10)
-(stream-display seven 4)
-(stream-display eleven 4)
-(stream-display mixStrm 8)
+;(stream-display s 10)
+;(stream-display seven 4)
+;(stream-display eleven 4)
+(inspect (stream-display mixStrm 8) )
 (define bgs (big-gulp))
 (stream-display bgs 4)
 (stream-display bgs 8)
@@ -414,9 +414,9 @@ this
 )
 
 ;---------task 7------------;
-(define (run7)
-
-)
+;(define (run7)
+;
+;)
 ;---------task 8------------;
 
 (define (one n) 
@@ -505,11 +505,13 @@ this
 ;---------test 8------------;
 (define (run8)
 
-(println (sref (ps-mystery 2) 10))
+(stream-display (ps-mystery 1) 10)
 
-(println (sref (acc-mystery 2) 5))
+(stream-display (mystery 1) 10)
 
-(println (stream-display (super-mystery 2) 5))
+(stream-display (acc-mystery 1) 5)
+
+(stream-display (super-mystery 1) 5)
 
 )
 (run8)
@@ -539,7 +541,7 @@ this
 
 (define (weight-pairs s1 s2 w)
 	(scons (list (scar s1) (scar s2))
-		(mergeWeight (smap (lambda (x) (list (scar s1) x))
+		(mergeWeight (smap (lambda (x) (list (scar s1)x))
 				(scdr s2))
 		(weight-pairs (scdr s1) (scdr s2) w)
 		w)
@@ -549,12 +551,12 @@ this
 (define (ramanujan)
 	(define (ramMerge strm)
 		(if(= (trip-sum (scar strm)) (trip-sum (scadr strm)))
-			(scons (list (trip-sum (scar strm)) (scar strm) (scadr strm))
+			(scons (trip-sum (scar strm))
 				(ramMerge (scddr strm)))
 			(ramMerge (scdr strm))
 		)
 	)
-	(ramMerge (weight-pairs ints ints trip-sum))
+	(ramMerge (weight-pairs (integers-from 0) (integers-from 0) trip-sum))
 )
 
 
