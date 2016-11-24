@@ -7,6 +7,10 @@
 (define scdr stream-cdr)
 (define (scadr s) (scar(scdr s)))
 (define (scddr s) (scdr(scdr s)))
+(define (error s l)
+;	(print s)
+;	(print l)
+)
 (define (max a b)
 	(if(< a b) b a )
 )
@@ -296,12 +300,189 @@ this
 ;(run3)
 ;---------task 4------------;
 
+(define (call-each procs)
+	(if (null? procs)
+		'done
+		(begin
+			((car procs))
+			(call-each (cdr procs))
+		)
+	)
+)
+
+(define (make-connector)
+	(let 	((value #f)
+		(resolved #f)
+		(action-procs '()))
+
+	(define (accept-action! proc)
+		(set! action-procs
+			(cons proc action-procs )
+		)
+	)
+	(define (set-value! new-value)
+		(cond	(( not (has-value? self))
+				(begin
+					(set! value new-value)
+					(set! resolved #t)
+					(call-each action-procs)))
+				((not (= new-value value))
+					(error "Contradiction" (list value new-value)))
+				(else 'ignored)
+		)
+	)
+	(define(forget-value!)
+		(begin
+			(set! value #f)
+			(set! resolved #f)
+			'done
+		)
+	)
+	(define (self m)
+		(cond
+			((eq? m 'get-value) value)
+			((eq? m 'add-action!) accept-action)
+			((eq? m 'set-value!) set-value!)
+			((eq? m 'forget-value!) (forget-value!))
+			((eq? m 'has-value?) resolved)
+			(else (error "Uknown method for connector" m))
+		)
+	)
+	self))
+
+;-------helpers
+
+(define (get-value connector)
+	(connector 'get-value)
+)
+(define (forget-value! connector)
+	(connector 'forget-value!)
+)
+(define (has-value? connector)
+	(connector 'has-value?)
+)
+(define (set-value! connector new-value)
+	((connector 'set-value!) new-value)
+)
+(define (add-action! connector action)
+	((connector 'add-action!)action)
+)
+
+
+(define(resolved-count connectors)
+	(define (iter l c)
+		(if	(null? l)
+			c
+			(iter (cdr l)
+				(+ c (if (car l) 1 0))
+			)
+		)
+	)
+	(iter (map has-value? connectors) 0)
+)
+
+(define (enforce-relation connector proc . others)
+	(define (apply-when-resolved)
+		(let ((resolved-res
+			(if (= (length others) (resolved-count others))
+				(apply proc (map get-value others))
+				#f)))
+		(if resolved-res
+			(set-value! connector resolved-res))))
+	(for-each (lambda (other)
+		(add-action! other apply-when-resolved)) others)
+)
+
+(define (constant value connector)
+	(set-value! connector value)
+)
+
+(define (adder a1 a2 sum)
+	(enforce-relation a1 (lambda(a2 sum)
+				(- sum a2)) a2 sum)
+	(enforce-relation a2 (lambda(a1 sum)
+				(- sum a1)) a1 sum)
+	(enforce-relation sum (lambda(a2 sum)
+				(+ a1 a2)) a1 a2)
+)
+
+(define (square x)
+	(* x x)
+)
+
+(define (make-grav f m1 m2 r g)
+;f=(* g (/ (* m1 m2 ) r )))
+	(enforce-relation f 	
+		(lambda(m1 m2 r g)
+			(* g (/ (* m1 m2 ) (square r)))
+			) 
+			m1 m2 r g)
+;m1=(/ (* (/ f g) (square r) ) m2)
+	(enforce-relation m1 
+		(lambda(f m2 r g)
+			(/ (* (/ f g) (square r) ) m2)
+			) 
+			f m2 r g)
+;m2=(/ (* (/ f g) (square r ) m1)
+	(enforce-relation m2
+	 	(lambda(f m1 r g)
+			(/ (* (/ f g) (square r) ) m1)
+			) 
+			f m1 r g)
+;(square r)=(/ (* g m1 m2) f)
+	(enforce-relation (square r)
+	 	(lambda(f m1 m2 g)
+			(/ (* g m1 m2) f)
+			) 
+			f m1 m2 g)
+)
+
+
+(define (gravity f m1 m2 r)
+	(let
+		((f (make-connector))
+		(m1 (make-connector))
+		(m2 (make-connector))
+		 (r (make-connector))
+		(G (make-connector)))
+	(constant 0.00667300  G)
+	(make-grav f m1 m2 r G)
+	(constant 0.00667300  G)
+	'ok)
+)
+
+
+(define (probe-connector name connector)
+	(add-action!connector
+		(lamdba ()
+		(newline)
+		(display name (display " ")
+		(display " New-value = ")
+		(display (get-value connector))))
+	)
+)
+
+
+
+
+
+
 
 
 ;---------test 4------------;
-;(define (run4)
-;
-;)
+(define (run4)
+	(define F (make-connector))
+	(define M1 (make-connector))
+	(define M2 (make-connector))
+	(define R (make-connector))
+	(constant 100 M1)
+	(constant 150 M2)
+	(constant 5 R)
+;	(constant 4.0038 F)
+	(println "4.0038= G ((100 * 150)/(5*5))")
+	(gravity F M1 M2 R)
+	(inspect i(get-value F))
+)
 ;---------task 5------------;
 
 
