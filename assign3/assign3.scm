@@ -32,7 +32,8 @@
 )
 
 (define (psum s)
-	(sop + s (scons 0.0 (psum s)))
+	(scons (scar s) (sop + (scdr s) (psum s)))
+	;(sop + s (scons 0.0 (psum s)))
 )
 
 (define (sref s n)
@@ -56,7 +57,7 @@
 
 (define (sop op s1 s2)
 ;	(print (scar s1))
-;	(print " / ")
+;	(print op)
 ;	(print (scar s2))
 ;	(println "")
 	(scons (op (scar s1) (scar s2))
@@ -604,9 +605,9 @@ this
 
 
 ;---------task 7------------;
-(define (run7)
-
-)
+;(define (run7)
+;
+;)
 ;---------task 8------------;
 
 (define (one n) 
@@ -652,6 +653,7 @@ this
 )
 
 (define (mystery x)
+
 	(sop * (even-pow x) (sop / ones alt-even-fact))
 )
 
@@ -660,18 +662,23 @@ this
 )
 
 (define (square x)
-	(* x x)
+	(* (real x) (real x))
 )
 
 (define (et s)
-	(define s0 (sref s 0))
-	(define s1 (sref s 1))
-	(define s2 (sref s 2))
-
-	(scons 
-		(- s2 (/ (square (- s2 s1))
-			(+ s0 (* -2 s1) s2)))
-		
+	(define s0 (real(sref s 0)))
+	(define s1 (real(sref s 1)))
+	(define s2 (real(sref s 2)))
+;	(print "s0= ")
+;	(println s0)
+;	(print "s1= ")
+;	(println s1)
+;	(print "s2= ")
+;	(println s2)
+;		(inspect(+ s0 (* -2.0 s1) s2))
+	(scons
+		(- s2 
+			(/ (^ (- s2 s1) 2) (+ s0 (* -2 s1) s2)))
 		(et (scdr s))
 	)
 )
@@ -682,11 +689,11 @@ this
 )
 
 (define (acc-mystery x)
-	(et (ps-mystery x))
+	(et (ps-mystery (real x)))
 )
 
 (define (super-mystery x)
-	(smap scar (tableau et (ps-mystery x)))
+	(smap scar (tableau et (ps-mystery (real x))))
 )	
 
 
@@ -694,14 +701,15 @@ this
 
 ;---------test 8------------;
 (define (run8)
+;(stream-display alt-even-fact 100)
 
-(stream-display (ps-mystery 1) 10)
+(stream-display (ps-mystery 1) 100)
 
-(stream-display (mystery 1) 10)
+(stream-display (mystery 1) 100)
 
-(stream-display (acc-mystery 1) 5)
-
-(stream-display (super-mystery 1) 5)
+;(stream-display (acc-mystery 1.0) 20)
+;(super-mystery 1)
+;(stream-display (super-mystery 1) 50)
 
 )
 (run8)
