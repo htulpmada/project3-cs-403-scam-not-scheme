@@ -320,6 +320,11 @@ this
 			(cons proc action-procs )
 		)
 	)
+	(define(accept-action! proc)
+		(set! action-procs
+			(cons proc action-procs)
+		)
+	)
 	(define (set-value! new-value)
 		(cond	(( not (has-value? self))
 				(begin
@@ -341,7 +346,7 @@ this
 	(define (self m)
 		(cond
 			((eq? m 'get-value) value)
-			((eq? m 'add-action!) accept-action)
+			((eq? m 'add-action!) accept-action!)
 			((eq? m 'set-value!) set-value!)
 			((eq? m 'forget-value!) (forget-value!))
 			((eq? m 'has-value?) resolved)
@@ -381,16 +386,16 @@ this
 	(iter (map has-value? connectors) 0)
 )
 
-(define (enforce-relation connector proc . others)
+(define (enforce-relation connector proc @)
 	(define (apply-when-resolved)
 		(let ((resolved-res
-			(if (= (length others) (resolved-count others))
-				(apply proc (map get-value others))
+			(if (= (length @) (resolved-count @))
+				(apply proc (map get-value @))
 				#f)))
 		(if resolved-res
 			(set-value! connector resolved-res))))
 	(for-each (lambda (other)
-		(add-action! other apply-when-resolved)) others)
+		(add-action! other apply-when-resolved)) @)
 )
 
 (define (constant value connector)
@@ -430,9 +435,9 @@ this
 			) 
 			f m1 r g)
 ;(square r)=(/ (* g m1 m2) f)
-	(enforce-relation (square r)
+	(enforce-relation r
 	 	(lambda(f m1 m2 g)
-			(/ (* g m1 m2) f)
+			(sqrt(/ (* g m1 m2) f))
 			) 
 			f m1 m2 g)
 )
@@ -445,7 +450,7 @@ this
 		(m2 (make-connector))
 		 (r (make-connector))
 		(G (make-connector)))
-	(constant 0.00667300  G)
+;	(constant 0.00667300  G)
 	(make-grav f m1 m2 r G)
 	(constant 0.00667300  G)
 	'ok)
@@ -463,26 +468,20 @@ this
 )
 
 
-
-
-
-
-
-
 ;---------test 4------------;
-(define (run4)
-	(define F (make-connector))
-	(define M1 (make-connector))
-	(define M2 (make-connector))
-	(define R (make-connector))
-	(constant 100 M1)
-	(constant 150 M2)
-	(constant 5 R)
+;(define (run4)
+;	(define F (make-connector))
+;	(define M1 (make-connector))
+;	(define M2 (make-connector))
+;	(define R (make-connector))
+;	(constant 100 M1)
+;	(constant 150 M2)
+;	(constant 5 R)
 ;	(constant 4.0038 F)
-	(println "4.0038= G ((100 * 150)/(5*5))")
-	(gravity F M1 M2 R)
-	(inspect i(get-value F))
-)
+;	(println "4.0038= G ((100 * 150)/(5*5))")
+;	(gravity F M1 M2 R)
+;	(inspect (get-value F))
+;)
 ;---------task 5------------;
 
 
@@ -572,12 +571,15 @@ this
 ;(run6)
 ;---------task 7------------;
 
+(define (delay # $x)
+	(cons $x #))
+(define (force x)
+	(eval (car x) (cdr x)))
+
 (define (signal f x dx)
 	(scons (f x ) (signal f (+ x dx) dx))
 )
-(define (integral s dx)
 
-)
 (define(differential s dx)
 
 )
@@ -587,17 +589,24 @@ this
 		(/ (- (g (+ x dx)) ( g x)) dx)
 	)
 )
-(define (integr f a b dx)
-	(* (sum f (+ a (/ dx 2.0))
-		(lambda (x) (+ x dx))
-		b)
-	dx)
+(define (integral s x dx)
+	(define int
+		(scons
+			x
+			(sop +
+				(smap (lambda (a) (* a dx)) (force s))
+				int)))
+	int
 )
 
+(define y (integral (delay y) 1 .001))
+(stream-display y 3)
+
+
 ;---------task 7------------;
-;(define (run7)
-;
-;)
+(define (run7)
+
+)
 ;---------task 8------------;
 
 (define (one n) 
