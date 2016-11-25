@@ -56,10 +56,6 @@
 )
 
 (define (sop op s1 s2)
-;	(print (scar s1))
-;	(print op)
-;	(print (scar s2))
-;	(println "")
 	(scons (op (scar s1) (scar s2))
 		(sop op (scdr s1) (scdr s2)))
 )
@@ -86,20 +82,12 @@
 	(print-stream (scdr s))
 )
 
-(define (zero? n)(= n 0))
-(define (div7? n)
-	(inspect n)
-	(cond	((= n 0) #f)
-		(else 	(or 
-			(not(zero? (remainder n 7)))
-			(not(zero? (remainder n 11)))
-			)
-		)
-	)
-)
-
-;(print-stream ints)
 ;---------task 1------------;
+
+;(define (nonlocals f)
+;
+;)
+
 
 
 
@@ -443,7 +431,6 @@ this
 			f m1 m2 g)
 )
 
-
 (define (gravity f m1 m2 r)
 	(let
 		((f (make-connector))
@@ -451,12 +438,10 @@ this
 		(m2 (make-connector))
 		 (r (make-connector))
 		(G (make-connector)))
-;	(constant 0.00667300  G)
 	(make-grav f m1 m2 r G)
 	(constant 0.00667300  G)
 	'ok)
 )
-
 
 (define (probe-connector name connector)
 	(add-action!connector
@@ -563,10 +548,10 @@ this
 ;(stream-display s 10)
 ;(stream-display seven 4)
 ;(stream-display eleven 4)
-(inspect (stream-display mixStrm 8) )
+;(inspect (stream-display mixStrm 8) )
 (define bgs (big-gulp))
-(stream-display bgs 4)
-(stream-display bgs 8)
+;(stream-display bgs 4)
+;(stream-display bgs 8)
 (stream-display bgs 20)
 )
 ;(run6)
@@ -577,37 +562,54 @@ this
 (define (force x)
 	(eval (car x) (cdr x)))
 
+(define equation
+	(lambda (x) (+ (^ x 2) (* x 3) -4));0 1)
+)
+
 (define (signal f x dx)
 	(scons (f x ) (signal f (+ x dx) dx))
 )
 
-(define(differential s dx)
 
+
+(define poly 
+	(signal equation 0 1)
+)
+
+
+
+(define(differential x s dx)
+	(scons
+		x 
+		((deriv equation) (scdr s) dx)
+	)
 )
 
 (define (deriv g)
-	(lambda (x)
+	(lambda (x dx)
 		(/ (- (g (+ x dx)) ( g x)) dx)
 	)
 )
-(define (integral s x dx)
+
+(define (integral s dx)
 	(define int
 		(scons
-			x
+			-4;(scar s);x
 			(sop +
 				(smap (lambda (a) (* a dx)) (force s))
 				int)))
 	int
 )
 
-(define y (integral (delay y) 1 .001))
-(stream-display y 3)
-
+(define intPoly (integral (delay intPoly) .001))
+(define divIntPoly (differential  (scar intPoly) intPoly .01))
 
 ;---------task 7------------;
-;(define (run7)
-;
-;)
+(define (run7)
+
+(stream-display intPoly 3)
+(stream-display divIntPoly 3)
+)
 ;---------task 8------------;
 
 (define (one n) 
@@ -669,17 +671,16 @@ this
 	(define s0 (real(sref s 0)))
 	(define s1 (real(sref s 1)))
 	(define s2 (real(sref s 2)))
-;	(print "s0= ")
-;	(println s0)
-;	(print "s1= ")
-;	(println s1)
-;	(print "s2= ")
-;	(println s2)
-;		(inspect(+ s0 (* -2.0 s1) s2))
-	(scons
-		(- s2 
-			(/ (^ (- s2 s1) 2) (+ s0 (* -2 s1) s2)))
-		(et (scdr s))
+	(cond
+		((= 0 (+ s0 (* -2.0 s1) s2)) 
+		(scons s2 (et (scdr s)))
+		)
+		(else
+			(scons
+				(- s2 (/ (^ (- s2 s1) 2) (+ s0 (* -2 s1) s2)))
+				(et (scdr s))
+			)
+		)
 	)
 )
 
@@ -701,18 +702,13 @@ this
 
 ;---------test 8------------;
 (define (run8)
-;(stream-display alt-even-fact 100)
-
-(stream-display (ps-mystery 1) 100)
-
-(stream-display (mystery 1) 100)
-
-;(stream-display (acc-mystery 1.0) 20)
-;(super-mystery 1)
-;(stream-display (super-mystery 1) 50)
-
+;(sref alt-even-fact 100)
+;(sref (ps-mystery 1) 100)
+;(sref (mystery 1) 100)
+;(sref (acc-mystery 1.0) 20)
+(inspect(sref (super-mystery 1) 50))
 )
-(run8)
+;(run8)
 ;---------task 9------------;
 (define (trip e) (* e e e))
 (define (trip-sum e) (+ (trip (car e)) (trip (cadr e))))
@@ -762,7 +758,7 @@ this
 (define (run9)
 (define ramNum (ramanujan))
 (inspect ramNum)
-(stream-display ramNum 5)
+(inspect(sref ramNum 5))
 )
 
 ;(run9)
