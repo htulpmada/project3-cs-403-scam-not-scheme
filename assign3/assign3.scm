@@ -471,11 +471,49 @@ this
 ;---------task 5------------;
 
 
+(define (barrier)
+	(define int nil)
+	(define ids nil)
+	(define (set i)
+		(set! int i)
+	)
+	(define (install)
+		(if (<= int 0)
+		(p)
+		(begin (lock)
+			(set! ids (cons (gettid) ids))
+			(set! int (- 1 int))
+			(unlock)
+			'ACQUIRED)
+		)
+	)
+	(define (rem item items)
+		(if (null? items)
+			nil
+			(if (= item (car items))
+				(cdr items)
+				(cons (car items) (rem items (cdr items)))
+			)
+		)
+	)
+	(define (remove)
+		(if (member? (gettid) ids)
+			(begin
+				(lock)
+				(set! ids (rem (gettid) ids))
+				(set! int(+ 1 int))
+				(unlock)
+				'RELEASED)
+			'FORBIDDEN
+		)
+	)
+this
+)
 
 ;---------test 5------------;
-;(define (run5)
-;
-;)
+(define (run5)
+
+)
 ;---------task 6------------;
 
 ;---streams--;
@@ -492,34 +530,35 @@ this
 
 (define seven (s-from 7))
 (define eleven (e-from 11))
+(define sevene (s-from 11))
+(define elevens (e-from 7))
 
-(define (mix i j)
-	(scons (* (scar i) (scar j))
-		(mix (scdr i) (scdr j))
-	)
-)
-(define mixStrm (mix seven eleven))
-
-;--mergre streams--;
-(define (sev11 s e)
+;--merge streams--;
+(define (merge s e)
 	(let ((cars1 (scar s))
 		(cars2 (scar e)))
 		(cond 	((< cars1 cars2)
 				(scons cars1
-					(sev11 (stream-cdr s) e)))
+					(merge (stream-cdr s) e)))
 			((= cars1 cars2)
 				(scons cars1
-					(sev11 (stream-cdr s) e)))
+					(merge (stream-cdr s) e)))
 			(else 	(scons cars2
-					(sev11 s (stream-cdr e)))
+					(merge s (stream-cdr e)))
 			)
 		)
 	)
 )
 
-
 (define (big-gulp)
-	(sev11 (sev11 seven eleven) mixStrm)
+	(define s (merge 
+			(merge 
+				(merge 	seven 
+					(scdr sevene)) 
+				eleven)
+			(scddr elevens)
+		)
+	)
 )
 ;--print stream--;
 (define (stream-display strm n)
@@ -543,16 +582,8 @@ this
 
 ;---------test 6------------;
 (define (run6)
-;stream-display test;
-(define s (integers-from 0))
-;(stream-display s 10)
-;(stream-display seven 4)
-;(stream-display eleven 4)
-;(inspect (stream-display mixStrm 8) )
 (define bgs (big-gulp))
-;(stream-display bgs 4)
-;(stream-display bgs 8)
-(stream-display bgs 20)
+(stream-display bgs 15)
 )
 ;(run6)
 ;---------task 7------------;
@@ -570,18 +601,14 @@ this
 	(scons (f x ) (signal f (+ x dx) dx))
 )
 
-
-
 (define poly 
 	(signal equation 0 1)
 )
 
-
-
 (define(differential x s dx)
 	(scons
-		x 
-		((deriv equation) (scdr s) dx)
+		(/ (- (scar s) x )dx) 
+		(differential (scar s) (scdr s) dx)
 	)
 )
 
@@ -594,21 +621,30 @@ this
 (define (integral s dx)
 	(define int
 		(scons
-			-4;(scar s);x
+			(scar s);x
 			(sop +
-				(smap (lambda (a) (* a dx)) (force s))
+				(smap (lambda (a) (* a dx)) (scdr s))
 				int)))
 	int
 )
 
-(define intPoly (integral (delay intPoly) .001))
-(define divIntPoly (differential  (scar intPoly) intPoly .01))
+(define (subStreams s1 s2)
+	(sop - s2 s1)
+)
 
+(define intPoly (integral poly .01))
+(define divIntPoly (differential  (scar poly) intPoly .01))
+(define difference (subStreams poly divIntPoly))
 ;---------task 7------------;
 (define (run7)
-
-(stream-display intPoly 3)
-(stream-display divIntPoly 3)
+(define sq (signal (lambda (x) (* x x)) 0 1))
+(stream-display sq 6)
+(stream-display(differential 0 (integral sq 1) 1) 6) 
+(println "")
+(stream-display poly 5)
+(stream-display intPoly 5)
+(stream-display divIntPoly 5)
+(inspect(sref (psum difference) 50))
 )
 ;---------task 8------------;
 
@@ -702,10 +738,10 @@ this
 
 ;---------test 8------------;
 (define (run8)
-;(sref alt-even-fact 100)
-;(sref (ps-mystery 1) 100)
-;(sref (mystery 1) 100)
-;(sref (acc-mystery 1.0) 20)
+(sref alt-even-fact 10)
+(sref (ps-mystery 1) 10)
+(sref (mystery 1) 10)
+(sref (acc-mystery 1.0) 10)
 (inspect(sref (super-mystery 1) 50))
 )
 ;(run8)
