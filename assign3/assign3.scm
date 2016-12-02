@@ -96,13 +96,30 @@
 ;
 ;)
 ;---------task 2------------;
-
+(define (replace f oS nS)
+	(define bod (get 'code f))
+	(define (recur code)
+		(cond
+			((nil? code) code)
+			((atom? (car code))
+				(if (equal? (car code) oS) (set-car! code nS))
+				(recur (cdr code))
+			)
+			(else (recur (car code)) (recur (cdr code)))
+		)
+	)
+	(recur bod)
+	bod
+)	
 
 
 ;---------test 2------------;
-;(define (run2)
-;
-;)
+(define (run2)
+(define (fx x) (* x x x))
+(replace fx '* +)
+(inspect(fx 2))
+
+)
 ;---------task 3------------;
 (define (avl)
 (define s 0)
